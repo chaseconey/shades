@@ -1,0 +1,14 @@
+@layout('layout.app')
+
+@section('content')
+
+  @each((clusters, region) in payload)
+    <h2>{{ region }}</h2>
+    <div class="row">
+      @each(cluster in clusters.sort())
+        @!component('components.card-link', { link: "/" + $parent.region + "/" + cluster, name: cluster })
+      @endeach
+    </div>
+  @endeach
+
+@endsection

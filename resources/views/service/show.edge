@@ -1,0 +1,124 @@
+@layout('layout.app')
+
+@section('content')
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb bg-white">
+    <li class="breadcrumb-item"><a href="/">Clusters</a></li>
+    <li class="breadcrumb-item"><a href="/{{ request.params.region }}/{{ request.params.cluster }}">{{ request.params.cluster }} ({{ request.params.region }})</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ request.params.service }}</li>
+  </ol>
+</nav>
+
+<h1>{{ service.serviceName }}</h1>
+<div class="text-muted text-xs">{{ service.serviceArn }}</div>
+
+<div class="row">
+  <div class="col-6">
+      <canvas id="myCanvas" resize></canvas>
+  </div>
+  <div class="col-3">
+    <div class="card border mx-sm-1 h-100 p-3">
+      <div class="text-center mt-3"><h4>Port</h4></div>
+      <div class="text-center mt-2"><h1>{{ service.loadBalancers.pop().containerPort}}</h1></div>
+    </div>
+  </div>
+  <div class="col-3">
+    <div class="card border mx-sm-1 p-3">
+      <div class="text-center mt-2"><h6>Min Healthy %</h6></div>
+      <div class="text-center"><h4>{{ service.deploymentConfiguration.minimumHealthyPercent }}</h4></div>
+      <div class="text-center mt-2"><h6>Max Healthy %</h6></div>
+      <div class="text-center"><h4>{{ service.deploymentConfiguration.maximumPercent }}</h4></div>
+    </div>
+  </div>
+</div>
+
+<ul class="nav nav-tabs" id="myTab" role="tablist">
+  <li class="nav-item">
+    <a class="nav-link active" id="environment-tab" data-toggle="tab" href="#environment" role="tab" aria-controls="environment" aria-selected="true">Environment</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" id="events-tab" data-toggle="tab" href="#events" role="tab" aria-controls="events" aria-selected="false">Events</a>
+  </li>
+</ul>
+
+<div class="tab-content">
+  <div class="tab-pane active" id="environment" role="tabpanel" aria-labelledby="environment-tab">
+    @!component('service.partials.env', { containerDefs: def.taskDefinition.containerDefinitions })
+  </div>
+  <div class="tab-pane" id="events" role="tabpanel" aria-labelledby="events-tab">
+    @!component('service.partials.events', { events: service.events })
+  </div>
+</div>
+
+
+@endsection
+
+@section('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/3.3.2/fabric.js"></script>
+<script>
+  $(function () {
+    // $('#myTab li:last-child a').tab('show')
+
+    let running = {{ service.runningCount }};
+    let pending = {{ service.pendingCount }};
+    let total = pending + running;
+
+    let canvas = new fabric.Canvas('myCanvas');
+    let rect = new fabric.Rect({
+      fill: '#FF7034',
+      width: 200,
+      height: 30,
+      originX: 'center',
+      originY: 'center'
+    });
+    let txt = new fabric.Text('Load Balancer', {
+      fontSize: 15,
+      fill: 'white',
+      fontFamily: 'Helvetica',
+      originX: 'center',
+      originY: 'center'
+    });
+    var lb = new fabric.Group([rect, txt], {
+      left: 100,
+      top: 30
+    });
+
+    buildSquares(running, total, 'green', canvas);
+    buildSquares(pending, total, 'yellow', canvas, running);
+
+
+    canvas.add(lb);
+    canvas.renderAll();
+
+  })
+
+  function buildSquares(cnt, total, fill, canvas, start = 0) {
+    for (let c = start; c < cnt + start; c++) {
+
+      let width = (200 / total) - 2;
+      let left = 100 + ((200 / total) * c);
+
+      let rect = new fabric.Rect({
+        fill,
+        width,
+        height: 30,
+        originX: 'center',
+        originY: 'center'
+      });
+      let txt = new fabric.Text("Container " + (c + 1), {
+        fontSize: 10,
+        fill: fill == 'green' ? 'white' : 'black',
+        fontFamily: 'Helvetica',
+        originX: 'center',
+        originY: 'center'
+      });
+      var container = new fabric.Group([rect, txt], {
+        left,
+        top: 70,
+      });
+      canvas.add(container);
+    }
+  }
+</script>
+@endsection

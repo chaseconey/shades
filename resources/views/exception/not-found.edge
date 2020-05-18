@@ -1,0 +1,15 @@
+@layout('layout.app')
+
+@section('content')
+  @set('title', 'Not Found')
+
+  <div class="md:w-full lg:w-3/4 mx-auto" role="alert">
+    <div class="bg-danger text-white font-bold rounded-t px-4 py-2">
+      Not Found
+    </div>
+
+    <div class="border border-t-0 border-danger rounded-b px-4 py-3 text-danger-dark">
+      <p>The page you're looking for does not exist.</p>
+    </div>
+  </div>
+@endsection

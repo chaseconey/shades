@@ -1,0 +1,21 @@
+@layout('layout.app')
+
+@section('content')
+
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb bg-white">
+      <li class="breadcrumb-item"><a href="/">Clusters</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ request.params.cluster }} ({{ request.params.region }})</li>
+    </ol>
+  </nav>
+
+  <div class="row">
+      @each(service in services.sort())
+        @!component('components.card-link', { link: "/" + request.params.region + "/" + request.params.cluster + "/" + service, name: service })
+      @else
+        <div class="alert alert-secondary text-center p-4 font-weight-bold col" role="alert">
+          No services active in this cluster
+        </div>
+      @endeach
+    </div>
+@endsection
